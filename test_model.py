@@ -28,24 +28,24 @@ class TestScope:
     def test_scope_simple(self):
         parent = Scope()
         numb1 = Number(10)
-        parent["a"] = numb1
-        assert parent["a"] is numb1
+        parent['a'] = numb1
+        assert parent['a'] is numb1
         numb2 = Number(-2)
-        parent["b"] = numb2
-        assert parent["b"] is numb2
+        parent['b'] = numb2
+        assert parent['b'] is numb2
 
     def test_scope_take_from_parent(self):
         parent = Scope()
         scope = Scope(parent)
         numb = Number(10)
-        parent["a"] = numb
-        assert scope["a"] is numb
+        parent['a'] = numb
+        assert scope['a'] is numb
 
     def test_scope_have_func(self):
         parent = Scope()
         numb = Function([], [])
-        parent["f"] = numb
-        assert parent["f"] is numb
+        parent['f'] = numb
+        assert parent['f'] is numb
 
 
 class TestNumber:
@@ -64,21 +64,21 @@ class TestPrint:
         assert get_value(n) == 43
 
     def test_print_evaluate(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        res = Print(BO(N(30), "+", N(13))).evaluate(scope)
+        res = Print(BO(N(30), '+', N(13))).evaluate(scope)
         assert get_value(res) == 43
-        assert sys.stdout.getvalue() == "43\n"
+        assert sys.stdout.getvalue() == '43\n'
 
 
 class TestRead:
     def test_read(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdin", StringIO('43\n'))
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdin', StringIO('43\n'))
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         read_res = Read('a').evaluate(scope)
         Print(R('a')).evaluate(scope)
-        assert sys.stdout.getvalue() == "43\n"
+        assert sys.stdout.getvalue() == '43\n'
         assert get_value(read_res) == 43
 
 
@@ -133,20 +133,20 @@ class TestFunction:
 
     def test_function_many_arguments(self):
         scope = Scope()
-        scope["a"] = Number(33)
-        scope["b"] = Number(10)
-        func = Function(("a", "b"), [BO(Reference("a"), '+', Reference("b"))])
+        scope['a'] = Number(33)
+        scope['b'] = Number(10)
+        func = Function(('a', 'b'), [BO(Reference('a'), '+', Reference('b'))])
         res = func.evaluate(scope)
         assert get_value(res) == 43
 
     def test_function_big_body(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        scope["a"] = Number(33)
-        scope["b"] = Number(10)
-        func = F(("a", "b"), [P(R("a")),
-                              BO(R("a"), '-', R("b")),
-                              BO(R("a"), '+', R("b"))])
+        scope['a'] = Number(33)
+        scope['b'] = Number(10)
+        func = F(('a', 'b'), [P(R('a')),
+                              BO(R('a'), '-', R('b')),
+                              BO(R('a'), '+', R('b'))])
         res = func.evaluate(scope)
         P(res).evaluate(scope)
         assert sys.stdout.getvalue() == '33\n43\n'
@@ -161,8 +161,8 @@ class TestFunctionDefiniction:
     def test_function_definition_simple(self):
         scope = Scope()
         func = Function([], [BO(Number(10), '+', Number(33))])
-        func2 = FD("func", func).evaluate(scope)
-        assert scope["func"] is func
+        func2 = FD('func', func).evaluate(scope)
+        assert scope['func'] is func
         assert func2 is func
 
 
@@ -171,29 +171,29 @@ class TestReference:
     def test_reference_number(self, monkeypatch):
         scope = Scope()
         a = Number(43)
-        scope["a"] = a
-        a2 = Reference("a").evaluate(scope)
+        scope['a'] = a
+        a2 = Reference('a').evaluate(scope)
         assert a is a2
 
     def test_reference_function(self, monkeypatch):
         scope = Scope()
         func = Function([], [])
-        scope["function"] = func
-        func2 = Reference("function").evaluate(scope)
+        scope['function'] = func
+        func2 = Reference('function').evaluate(scope)
         assert func is func2
 
 
 class TestConditional:
 
     def test_conditional_empty(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         C(BO(BO(N(3), '%', N(3)), '==', N(0)), [], [P(N(1))]).evaluate(scope)
         C(BO(BO(N(3), '%', N(4)), '==', N(0)), [], [P(N(1))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n'
 
     def test_conditional_without_if_false(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         res1 = C(N(1), [P(N(1))]).evaluate(scope)
         C(N(0), [P(N(1))]).evaluate(scope)
@@ -201,14 +201,14 @@ class TestConditional:
         assert get_value(res1) == 1
 
     def test_conditional_simple(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         C(BO(N(3), '==', N(3)), [P(N(1))], [Print(N(0))]).evaluate(scope)
         C(BO(N(2), '==', N(3)), [P(N(1))], [Print(N(0))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n0\n'
 
     def test_conditional_return(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         res1 = C(BO(N(3), '==', N(3)), [N(1)], [N(0)]).evaluate(scope)
         res2 = C(BO(N(2), '==', N(3)), [N(1)], [N(0)]).evaluate(scope)
@@ -216,7 +216,7 @@ class TestConditional:
         assert get_value(res2) == 0
 
     def test_conditional_empty2(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         C(BO(N(3), '==', N(3)), [P(N(1))], []).evaluate(scope)
         C(BO(N(2), '==', N(3)), [P(N(2))], []).evaluate(scope)
@@ -227,7 +227,7 @@ class TestConditional:
         assert sys.stdout.getvalue() == '1\n4\n'
 
     def test_conditional_big_body(self, monkeypatch):
-        monkeypatch.setattr(sys, "stdout", StringIO())
+        monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         res1 = C(BO(N(3), '==', N(3)),
                  [P(N(1)), P(N(2))],
