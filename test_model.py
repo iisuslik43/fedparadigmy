@@ -66,7 +66,9 @@ class TestPrint:
     def test_print_evaluate(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        res = Print(BO(N(30), '+', N(13))).evaluate(scope)
+        res = Print(BinaryOperation(Number(30),
+                                    '+',
+                                    Number(13))).evaluate(scope)
         assert get_value(res) == 43
         assert sys.stdout.getvalue() == '43\n'
 
@@ -127,7 +129,9 @@ class TestFunction:
 
     def test_function_empty_arguments(self):
         scope = Scope()
-        func = Function([], [BO(Number(10), '+', Number(33))])
+        func = Function([], [BinaryOperation(Number(10),
+                                             '+',
+                                             Number(33))])
         res = func.evaluate(scope)
         assert get_value(res) == 43
 
@@ -135,7 +139,9 @@ class TestFunction:
         scope = Scope()
         scope['a'] = Number(33)
         scope['b'] = Number(10)
-        func = Function(('a', 'b'), [BO(Reference('a'), '+', Reference('b'))])
+        func = Function(('a', 'b'), [BinaryOperation(Reference('a'),
+                                                     '+',
+                                                     Reference('b'))])
         res = func.evaluate(scope)
         assert get_value(res) == 43
 
@@ -144,24 +150,28 @@ class TestFunction:
         scope = Scope()
         scope['a'] = Number(33)
         scope['b'] = Number(10)
-        func = F(('a', 'b'), [P(R('a')),
-                              BO(R('a'), '-', R('b')),
-                              BO(R('a'), '+', R('b'))])
+        func = F(('a', 'b'), [Print(Reference('a')),
+                              BinaryOperation(Reference('a'),
+                                              '-',
+                                              Reference('b')),
+                              BinaryOperation(Reference('a'),
+                                              '+',
+                                              Reference('b'))])
         res = func.evaluate(scope)
-        P(res).evaluate(scope)
+        Print(res).evaluate(scope)
         assert sys.stdout.getvalue() == '33\n43\n'
 
     def test_function_empty_body(self, monkeypatch):
         scope = Scope()
-        F(('a'), []).evaluate(scope)
+        Function(('a'), []).evaluate(scope)
 
 
-class TestFunctionDefiniction:
+class TestFunctionDefinition:
 
     def test_function_definition_simple(self):
         scope = Scope()
         func = Function([], [BO(Number(10), '+', Number(33))])
-        func2 = FD('func', func).evaluate(scope)
+        func2 = FunctionDefinition('func', func).evaluate(scope)
         assert scope['func'] is func
         assert func2 is func
 
@@ -188,8 +198,20 @@ class TestConditional:
     def test_conditional_empty(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        C(BO(BO(N(3), '%', N(3)), '==', N(0)), [], [P(N(1))]).evaluate(scope)
-        C(BO(BO(N(3), '%', N(4)), '==', N(0)), [], [P(N(1))]).evaluate(scope)
+        C(BinaryOperation(BinaryOperation(Number(3),
+                                          '%',
+                                          Number(3)),
+                          '==',
+                          Number(0)),
+          [],
+          [Print(Number(1))]).evaluate(scope)
+        C(BinaryOperation(BinaryOperation(Number(3),
+                                          '%',
+                                          Number(4)),
+                          '==',
+                          Number(0)),
+          [],
+          [Print(Number(1))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n'
 
     def test_conditional_without_if_false(self, monkeypatch):
