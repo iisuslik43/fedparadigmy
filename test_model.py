@@ -318,29 +318,39 @@ class TestIntegration:
 
     def test_factorial(self):
         parent = Scope()
-        FD('factorial',
-           F(('a'),
-             [C(BO(R('a'), '<=', Number(1)),
-                [R('a')],
-                [BO(FC(R('factorial'),
-                       [BO(R('a'), '-', N(1))]),
-                    '*', R('a'))])])).evaluate(parent)
-        n = FC(R('factorial'),
-               [Number(5)]).evaluate(parent)
+        FunctionDefinition('factorial',
+            Function(('a'),
+                [Conditional(BinaryOperation(Reference('a'),
+                                             '<=',
+                                             Number(1)),
+                    [Reference('a')],
+                    [BinaryOperation(FunctionCall(Reference('factorial'),
+                        [BinaryOperation(Reference('a'),
+                                         '-',
+                                         Number(1))]),
+                     '*', Reference('a'))])])).evaluate(parent)
+        n = FunctionCall(Reference('factorial'),
+                         [Number(5)]).evaluate(parent)
         assert get_value(n) == 120
 
     def test_fibonacci(self):
         parent = Scope()
-        FD('fib',
-           F(('a'),
-             [C(BO(R('a'), '<=', N(1)),
-                [R('a')],
-                [BO(FC(R('fib'),
-                       [BO(R('a'), '-', N(1))]),
-                    '+', FC(R('fib'),
-                            [BO(R('a'), '-', N(2))]))])])).evaluate(parent)
-        n = FC(R('fib'),
-               [Number(8)]).evaluate(parent)
+        FunctionDefinition('fib',
+            Function(('a'),
+                [Conditional(BinaryOperation(Reference('a'),
+                                             '<=',
+                                             Number(1)),
+                    [Reference('a')],
+                    [BinaryOperation(FunctionCall(Reference('fib'),
+                            [BinaryOperation(Reference('a'),
+                                             '-',
+                                             Number(1))]),
+                        '+', FunctionCall(Reference('fib'),
+                        [BinaryOperation(Reference('a'),
+                                         '-',
+                                         Number(2))]))])])).evaluate(parent)
+        n = FunctionCall(Reference('fib'),
+                         [Number(8)]).evaluate(parent)
         assert get_value(n) == 21
 
     def test_average(self):
