@@ -1,8 +1,4 @@
 SELECT City.Name FROM City
-WHERE City.Id = (
-  SELECT Capital.CityId from Capital
-  where Capital.CountryCode = (
-	 Select Country.Code from Country
-	 where Country.name = "Malaysia"
-  )
-);
+Join Capital on Capital.cityid = city.id
+Join country on Capital.CountryCode = Country.code
+where country.name = "Malaysia"

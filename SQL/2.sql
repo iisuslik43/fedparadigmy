@@ -6,4 +6,3 @@ where rate = (
 )
 group by country.name
 order by rate desc
-limit 1
