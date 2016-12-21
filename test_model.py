@@ -97,7 +97,7 @@ class TestUnaryOperation:
         assert get_value(ev) < 0
         n = Number(43)
         ev = UnaryOperation('-', UnaryOperation('-', n))
-        assert get_value(ev) < 43
+        assert get_value(ev) == 43
 
 
 class TestBinaryOperation:
