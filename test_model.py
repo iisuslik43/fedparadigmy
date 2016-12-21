@@ -4,17 +4,6 @@ from io import StringIO
 import pytest
 
 
-F = Function
-FD = FunctionDefinition
-FC = FunctionCall
-BO = BinaryOperation
-R = Reference
-C = Conditional
-N = Number
-UO = UnaryOperation
-P = Print
-
-
 def get_value(number):
     old_stdout = sys.stdout
     sys.stdout = StringIO()
@@ -79,7 +68,7 @@ class TestRead:
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         read_res = Read('a').evaluate(scope)
-        Print(R('a')).evaluate(scope)
+        Print(Reference('a')).evaluate(scope)
         assert sys.stdout.getvalue() == '43\n'
         assert get_value(read_res) == 43
 
@@ -105,8 +94,10 @@ class TestUnaryOperation:
         scope = Scope()
         n = Number(0)
         ev = UnaryOperation('-', UnaryOperation('!', n))
-        assert get_value(ev) == -1
-
+        assert get_value(ev) < 0
+        n = Number(43)
+        ev = UnaryOperation('-', UnaryOperation('-', n))
+        assert get_value(ev) < 0
 
 class TestBinaryOperation:
 
@@ -132,13 +123,11 @@ class TestFunction:
 
     def test_function_empty_arguments(self):
         scope = Scope()
-        func = Function([], [BinaryOperation(Number(10),
-                                             '+',
-                                             Number(33))])
+        func = Function([], [Number(43)])
         res = func.evaluate(scope)
         assert get_value(res) == 43
 
-    def test_function_many_arguments(self):
+    def test_function_many_arguments_and_evaluate(self):
         scope = Scope()
         scope['a'] = Number(33)
         scope['b'] = Number(10)
@@ -153,16 +142,13 @@ class TestFunction:
         scope = Scope()
         scope['a'] = Number(33)
         scope['b'] = Number(10)
-        func = F(('a', 'b'), [Print(Reference('a')),
-                              BinaryOperation(Reference('a'),
-                                              '-',
-                                              Reference('b')),
-                              BinaryOperation(Reference('a'),
-                                              '+',
-                                              Reference('b'))])
+        func = Function(('a', 'b'),
+                        [Print(Reference('a')),
+                         Reference('a'),
+                         Reference('b')])
         res = func.evaluate(scope)
         Print(res).evaluate(scope)
-        assert sys.stdout.getvalue() == '33\n43\n'
+        assert sys.stdout.getvalue() == '33\n10\n'
 
     def test_function_empty_body(self, monkeypatch):
         scope = Scope()
@@ -173,7 +159,7 @@ class TestFunctionDefinition:
 
     def test_function_definition_simple(self):
         scope = Scope()
-        func = Function([], [BO(Number(10), '+', Number(33))])
+        func = Function([], [BinaryOperation(Number(10), '+', Number(33))])
         func2 = FunctionDefinition('func', func).evaluate(scope)
         assert scope['func'] is func
         assert func2 is func
@@ -198,24 +184,6 @@ class TestReference:
 
 class TestConditional:
 
-    def test_conditional_empty(self, monkeypatch):
-        monkeypatch.setattr(sys, 'stdout', StringIO())
-        scope = Scope()
-        C(BinaryOperation(BinaryOperation(Number(3),
-                                          '%',
-                                          Number(3)),
-                          '==',
-                          Number(0)),
-          [],
-          [Print(Number(1))]).evaluate(scope)
-        C(BinaryOperation(BinaryOperation(Number(3),
-                                          '%',
-                                          Number(4)),
-                          '==',
-                          Number(0)),
-          [],
-          [Print(Number(1))]).evaluate(scope)
-        assert sys.stdout.getvalue() == '1\n'
 
     def test_conditional_without_if_false(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
@@ -225,7 +193,7 @@ class TestConditional:
         assert sys.stdout.getvalue() == '1\n'
         assert get_value(res1) == 1
 
-    def test_conditional_simple(self, monkeypatch):
+    def test_conditional_evaluate_condtion(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         Conditional(BinaryOperation(Number(3), '==', Number(3)),
@@ -248,25 +216,25 @@ class TestConditional:
         assert get_value(res1) == 1
         assert get_value(res2) == 0
 
-    def test_conditional_empty2(self, monkeypatch):
+    def test_conditional_empty(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+        Conditional(Number(43),
                     [Print(Number(1))],
                     []).evaluate(scope)
-        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+        Conditional(Number(0),
                     [Print(Number(2))],
                     []).evaluate(scope)
-        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+        Conditional(Number(43),
                     [],
                     []).evaluate(scope)
-        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+        Conditional(Number(0),
                     [],
                     []).evaluate(scope)
-        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+        Conditional(Number(43),
                     [],
                     [Print(Number(3))]).evaluate(scope)
-        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+        Conditional(Number(0),
                     [],
                     [Print(Number(4))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n4\n'
@@ -274,10 +242,10 @@ class TestConditional:
     def test_conditional_big_body(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+        Conditional(Number(43),
                     [Print(Number(1)), Print(Number(2))],
                     [Print(Number(3)), Print(Number(4))]).evaluate(scope)
-        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+        Conditional(Number(0),
                     [Print(Number(1)), Print(Number(2))],
                     [Print(Number(3)), Print(Number(4))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n2\n3\n4\n'
