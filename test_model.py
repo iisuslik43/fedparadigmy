@@ -299,16 +299,20 @@ class TestConditional:
                           [Number(334)]).evaluate(scope)
         assert get_value(res) == 334
 
-    def test_conditional_big_body(self, monkeypatch):
+    def test_conditional_big_body_if_true(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
         Conditional(Number(43),
                     [Print(Number(1)), Print(Number(2))],
                     [Print(Number(3)), Print(Number(4))]).evaluate(scope)
+        assert sys.stdout.getvalue() == '1\n2\n'
+    def test_conditional_big_body_if_false(self, monkeypatch):
+        monkeypatch.setattr(sys, 'stdout', StringIO())
+        scope = Scope()
         Conditional(Number(0),
                     [Print(Number(1)), Print(Number(2))],
                     [Print(Number(3)), Print(Number(4))]).evaluate(scope)
-        assert sys.stdout.getvalue() == '1\n2\n3\n4\n'
+        assert sys.stdout.getvalue() == '3\n4\n'
 
 
 class TestFunctionCall:
