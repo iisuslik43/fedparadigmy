@@ -103,35 +103,67 @@ class TestUnaryOperation:
 
 class TestBinaryOperation:
 
-    def test_binary_operation(self):
-        scope = Scope()
+    def test_binary_operation_sum(self):
         a = Number(43)
         b = Number(10)
         res = BinaryOperation(a, '+', b)
         assert get_value(res) == 53
+
+    def test_binary_operation_dif(self):
+        a = Number(43)
+        b = Number(10)
         res = BinaryOperation(a, '-', b)
         assert get_value(res) == 33
+
+    def test_binary_operation_mult(self):
+        a = Number(43)
+        b = Number(10)
         res = BinaryOperation(a, '*', b)
         assert get_value(res) == 430
+
+    def test_binary_operation_del(self):
+        a = Number(43)
+        b = Number(10)
         res = BinaryOperation(a, '/', b)
         assert get_value(res) == 4
+
+    def test_binary_operation_ost(self):
+        scope = Scope()
+        a = Number(43)
+        b = Number(10)
         res = BinaryOperation(a, '%', b)
         assert get_value(res) == 3
-        res = BinaryOperation(a, '&&', Number(0))
+
+    def test_binary_operation_and(self):
+        res = BinaryOperation(Number(43), '&&', Number(0))
         assert get_value(res) == 0
-        res = BinaryOperation(a, '||', Number(0))
+
+    def test_binary_operation_or(self):
+        res = BinaryOperation(Number(43), '||', Number(0))
         assert get_value(res) != 0
-        res = BinaryOperation(a, '>', Number(43))
+
+    def test_binary_operation_more(self):
+        res = BinaryOperation(Number(43), '>', Number(43))
         assert get_value(res) == 0
-        res = BinaryOperation(a, '<', Number(53))
+
+    def test_binary_operation_less(self):
+        res = BinaryOperation(Number(43), '<', Number(53))
         assert get_value(res) != 0
-        res = BinaryOperation(a, '>=', Number(43))
+
+    def test_binary_operation_more_or_eq(self):
+        res = BinaryOperation(Number(43), '>=', Number(43))
         assert get_value(res) != 0
-        res = BinaryOperation(a, '<=', Number(42))
+
+    def test_binary_operation_less_or_eq(self):
+        res = BinaryOperation(Number(43), '<=', Number(42))
         assert get_value(res) == 0
-        res = BinaryOperation(a, '==', Number(33))
+
+    def test_binary_operation_eq(self):
+        res = BinaryOperation(Number(43), '==', Number(33))
         assert get_value(res) == 0
-        res = BinaryOperation(a, '!=', Number(33))
+
+    def test_binary_operation_not_eq(self):
+        res = BinaryOperation(Number(43), '!=', Number(33))
         assert get_value(res) != 0
         
 
