@@ -88,9 +88,12 @@ class TestUnaryOperation:
 
     def test_unary_operation_not(self):
         scope = Scope()
-        n = Number(1)
+        n = Number(43)
         not_n = UnaryOperation('!', n).evaluate(scope)
         assert get_value(not_n) == 0
+        n = Number(0)
+        not_n = UnaryOperation('!', n).evaluate(scope)
+        assert get_value(not_n) != 0
 
     def test_unary_operation_minus(self):
         scope = Scope()
@@ -122,7 +125,7 @@ class TestBinaryOperation:
         b = Number(10)
         summ = BinaryOperation(a, '-', b)
         eq = BinaryOperation(summ, '==', Number(33))
-        assert get_value(eq) == 1
+        assert get_value(eq) !=0
 
 
 class TestFunction:
@@ -217,46 +220,66 @@ class TestConditional:
     def test_conditional_without_if_false(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        res1 = C(N(1), [P(N(1))]).evaluate(scope)
-        C(N(0), [P(N(1))]).evaluate(scope)
+        res1 = Conditional(Number(1), [Print(Number(1))]).evaluate(scope)
+        Conditional(Number(0), [Print(Number(1))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n'
         assert get_value(res1) == 1
 
     def test_conditional_simple(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        C(BO(N(3), '==', N(3)), [P(N(1))], [Print(N(0))]).evaluate(scope)
-        C(BO(N(2), '==', N(3)), [P(N(1))], [Print(N(0))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                    [Print(Number(1))],
+                    [Print(Number(0))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                    [Print(Number(1))],
+                    [Print(Number(0))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n0\n'
 
     def test_conditional_return(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        res1 = C(BO(N(3), '==', N(3)), [N(1)], [N(0)]).evaluate(scope)
-        res2 = C(BO(N(2), '==', N(3)), [N(1)], [N(0)]).evaluate(scope)
+        res1 = Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                           [Number(1)],
+                           [Number(0)]).evaluate(scope)
+        res2 = Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                           [Number(1)],
+                           [Number(0)]).evaluate(scope)
         assert get_value(res1) == 1
         assert get_value(res2) == 0
 
     def test_conditional_empty2(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        C(BO(N(3), '==', N(3)), [P(N(1))], []).evaluate(scope)
-        C(BO(N(2), '==', N(3)), [P(N(2))], []).evaluate(scope)
-        C(BO(N(3), '==', N(3)), [], []).evaluate(scope)
-        C(BO(N(2), '==', N(3)), [], []).evaluate(scope)
-        C(BO(N(3), '==', N(3)), [], [P(N(3))]).evaluate(scope)
-        C(BO(N(2), '==', N(3)), [], [P(N(4))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                    [Print(Number(1))],
+                    []).evaluate(scope)
+        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                    [Print(Number(2))],
+                    []).evaluate(scope)
+        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                    [],
+                    []).evaluate(scope)
+        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                    [],
+                    []).evaluate(scope)
+        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                    [],
+                    [Print(Number(3))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                    [],
+                    [Print(Number(4))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n4\n'
 
     def test_conditional_big_body(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        res1 = C(BO(N(3), '==', N(3)),
-                 [P(N(1)), P(N(2))],
-                 [P(N(3)), P(N(4))]).evaluate(scope)
-        res2 = C(BO(N(2), '==', N(3)),
-                 [P(N(1)), P(N(2))],
-                 [P(N(3)), P(N(4))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(3), '==', Number(3)),
+                    [Print(Number(1)), Print(Number(2))],
+                    [Print(Number(3)), Print(Number(4))]).evaluate(scope)
+        Conditional(BinaryOperation(Number(2), '==', Number(3)),
+                    [Print(Number(1)), Print(Number(2))],
+                    [Print(Number(3)), Print(Number(4))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n2\n3\n4\n'
 
 
@@ -264,24 +287,30 @@ class TestFunctionCall:
 
     def test_function_call_with_simple(self):
         parent = Scope()
-        FD('max',
-           F(('a', 'b'),
-             [Conditional(BO(R('a'), '>=', R('b')),
-              [R('a')],
-              [R('b')])])).evaluate(parent)
-        n = FC(R('max'),
-               [Number(6), Number(5)]).evaluate(parent)
+        FunctionDefinition('max',
+            Function(('a', 'b'),
+                     [Conditional(BinaryOperation(Reference('a'),
+                                                  '>=',
+                                                  Reference('b')),
+                                  [Reference('a')],
+                                  [Reference('b')])])).evaluate(parent)
+        n = FunctionCall(Reference('max'),
+            [Number(6), Number(5)]).evaluate(parent)
         assert get_value(n) == 6
 
     def test_function_call_very_tricky(self):
         parent = Scope()
-        FD('strange_max',
-           F(('a', 'b'),
-             [C(BO(R('a'), '<=', R('b')),
-                [R('b')], [FC(R('strange_max'),
-                              [R('b'), R('a')])])])).evaluate(parent)
-        n = FC(R('strange_max'),
-               [Number(6), Number(5)]).evaluate(parent)
+        FunctionDefinition('strange_max',
+            Function(('a', 'b'),
+                [Conditional(BinaryOperation(Reference('a'),
+                                          '<=',
+                                          Reference('b')),
+                    [Reference('b')],
+                    [FunctionCall(Reference('strange_max'),
+                                  [Reference('b'),
+                                  Reference('a')])])])).evaluate(parent)
+        n = FunctionCall(Reference('strange_max'),
+                         [Number(6), Number(5)]).evaluate(parent)
         assert get_value(n) == 6
 
 
@@ -316,10 +345,13 @@ class TestIntegration:
 
     def test_average(self):
         parent = Scope()
-        FD('average',
-           F(('a', 'b'),
-             [BO(BO(R('a'), '+', R('b')),
-                 '/', N(2))])).evaluate(parent)
-        n = FC(R('average'),
-               [Number(4), Number(6)]).evaluate(parent)
+        FunctionDefinition('average',
+            Function(('a', 'b'),
+                     [BinaryOperation(BinaryOperation(Reference('a'),
+                                                       '+',
+                                                       Reference('b')),
+                                       '/',
+                                       Number(2))])).evaluate(parent)
+        n = FunctionCall(Reference('average'),
+                         [Number(4), Number(6)]).evaluate(parent)
         assert get_value(n) == 5
