@@ -99,6 +99,7 @@ class TestUnaryOperation:
         ev = UnaryOperation('-', UnaryOperation('-', n))
         assert get_value(ev) < 0
 
+
 class TestBinaryOperation:
 
     def test_binary_operation(self):
@@ -116,7 +117,7 @@ class TestBinaryOperation:
         b = Number(10)
         summ = BinaryOperation(a, '-', b)
         eq = BinaryOperation(summ, '==', Number(33))
-        assert get_value(eq) !=0
+        assert get_value(eq) != 0
 
 
 class TestFunction:
@@ -183,7 +184,6 @@ class TestReference:
 
 
 class TestConditional:
-
 
     def test_conditional_without_if_false(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
@@ -255,28 +255,36 @@ class TestFunctionCall:
 
     def test_function_call_with_simple(self):
         parent = Scope()
-        FunctionDefinition('max',
+        FunctionDefinition(
+            'max',
             Function(('a', 'b'),
                      [Conditional(BinaryOperation(Reference('a'),
                                                   '>=',
                                                   Reference('b')),
                                   [Reference('a')],
-                                  [Reference('b')])])).evaluate(parent)
+                                  [Reference('b')])])
+        ).evaluate(parent)
         n = FunctionCall(Reference('max'),
-            [Number(6), Number(5)]).evaluate(parent)
+                         [Number(6), Number(5)]).evaluate(parent)
         assert get_value(n) == 6
 
     def test_function_call_very_tricky(self):
         parent = Scope()
-        FunctionDefinition('strange_max',
-            Function(('a', 'b'),
-                [Conditional(BinaryOperation(Reference('a'),
-                                          '<=',
-                                          Reference('b')),
+        FunctionDefinition(
+            'strange_max',
+            Function(
+                ('a', 'b'),
+                [Conditional(
+                    BinaryOperation(Reference('a'),
+                                    '<=',
+                                    Reference('b')),
                     [Reference('b')],
                     [FunctionCall(Reference('strange_max'),
                                   [Reference('b'),
-                                  Reference('a')])])])).evaluate(parent)
+                                  Reference('a')])]
+                )]
+            )
+        ).evaluate(parent)
         n = FunctionCall(Reference('strange_max'),
                          [Number(6), Number(5)]).evaluate(parent)
         assert get_value(n) == 6
@@ -286,50 +294,70 @@ class TestIntegration:
 
     def test_factorial(self):
         parent = Scope()
-        FunctionDefinition('factorial',
-            Function(('a'),
-                [Conditional(BinaryOperation(Reference('a'),
-                                             '<=',
-                                             Number(1)),
+        FunctionDefinition(
+            'factorial',
+            Function(
+                ('a'),
+                [Conditional(
+                    BinaryOperation(Reference('a'),
+                                    '<=',
+                                    Number(1)),
                     [Reference('a')],
-                    [BinaryOperation(FunctionCall(Reference('factorial'),
-                        [BinaryOperation(Reference('a'),
-                                         '-',
-                                         Number(1))]),
-                     '*', Reference('a'))])])).evaluate(parent)
+                    [BinaryOperation(FunctionCall(
+                                        Reference('factorial'),
+                                        [BinaryOperation(Reference('a'),
+                                                         '-',
+                                                         Number(1))]
+                                     ),
+                     '*', Reference('a'))]
+                )]
+            )
+        ).evaluate(parent)
         n = FunctionCall(Reference('factorial'),
                          [Number(5)]).evaluate(parent)
         assert get_value(n) == 120
 
     def test_fibonacci(self):
         parent = Scope()
-        FunctionDefinition('fib',
-            Function(('a'),
-                [Conditional(BinaryOperation(Reference('a'),
-                                             '<=',
-                                             Number(1)),
+        FunctionDefinition(
+            'fib',
+            Function(
+                ('a'),
+                [Conditional(
+                    BinaryOperation(Reference('a'),
+                                    '<=',
+                                    Number(1)),
                     [Reference('a')],
-                    [BinaryOperation(FunctionCall(Reference('fib'),
+                    [BinaryOperation(
+                        FunctionCall(
+                            Reference('fib'),
                             [BinaryOperation(Reference('a'),
                                              '-',
-                                             Number(1))]),
-                        '+', FunctionCall(Reference('fib'),
-                        [BinaryOperation(Reference('a'),
-                                         '-',
-                                         Number(2))]))])])).evaluate(parent)
+                                             Number(1))]
+                        ),
+                        '+',
+                        FunctionCall(Reference('fib'),
+                                     [BinaryOperation(Reference('a'),
+                                                      '-',
+                                                      Number(2))]))]
+                )]
+            )
+        ).evaluate(parent)
         n = FunctionCall(Reference('fib'),
                          [Number(8)]).evaluate(parent)
         assert get_value(n) == 21
 
     def test_average(self):
         parent = Scope()
-        FunctionDefinition('average',
+        FunctionDefinition(
+            'average',
             Function(('a', 'b'),
                      [BinaryOperation(BinaryOperation(Reference('a'),
-                                                       '+',
-                                                       Reference('b')),
-                                       '/',
-                                       Number(2))])).evaluate(parent)
+                                                      '+',
+                                                      Reference('b')),
+                                      '/',
+                                      Number(2))])
+        ).evaluate(parent)
         n = FunctionCall(Reference('average'),
                          [Number(4), Number(6)]).evaluate(parent)
         assert get_value(n) == 5
