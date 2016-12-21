@@ -165,7 +165,6 @@ class TestBinaryOperation:
     def test_binary_operation_not_eq(self):
         res = BinaryOperation(Number(43), '!=', Number(33))
         assert get_value(res) != 0
-        
 
     def test_binary_operation_evaluate(self):
         scope = Scope()
@@ -275,9 +274,6 @@ class TestConditional:
     def test_conditional_empty(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
-        Conditional(Number(43),
-                    [Print(Number(1))],
-                    []).evaluate(scope)
         Conditional(Number(0),
                     [Print(Number(2))],
                     []).evaluate(scope)
@@ -290,10 +286,18 @@ class TestConditional:
         Conditional(Number(43),
                     [],
                     [Print(Number(3))]).evaluate(scope)
-        Conditional(Number(0),
-                    [],
-                    [Print(Number(4))]).evaluate(scope)
-        assert sys.stdout.getvalue() == '1\n4\n'
+        assert sys.stdout.getvalue() == ''
+
+    def test_conditional_empty_with_result(self):
+        scope = Scope()
+        res = Conditional(Number(43),
+                          [Number(34)],
+                          []).evaluate(scope)
+        assert get_value(res) == 34
+        res = Conditional(Number(0),
+                          [],
+                          [Number(334)]).evaluate(scope)
+        assert get_value(res) == 334
 
     def test_conditional_big_body(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
