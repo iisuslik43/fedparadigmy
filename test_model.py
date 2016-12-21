@@ -9,8 +9,9 @@ def get_value(number):
     sys.stdout = StringIO()
     scope = Scope()
     Print(number).evaluate(scope)
-    return int(sys.stdout.getvalue())
+    value = int(sys.stdout.getvalue())
     sys.stdout = old_stdout
+    return value
 
 
 class TestScope:
@@ -94,7 +95,7 @@ class TestUnaryOperation:
         scope = Scope()
         n = Number(0)
         ev = UnaryOperation('-', UnaryOperation('!', n))
-        assert get_value(ev) < 0
+        assert get_value(ev) != 0
         n = Number(43)
         ev = UnaryOperation('-', UnaryOperation('-', n))
         assert get_value(ev) == 43
@@ -106,17 +107,40 @@ class TestBinaryOperation:
         scope = Scope()
         a = Number(43)
         b = Number(10)
-        summ = BinaryOperation(a, '+', b)
-        assert get_value(summ) == 53
-        con = BinaryOperation(a, '&&', Number(0))
-        assert get_value(con) == 0
+        res = BinaryOperation(a, '+', b)
+        assert get_value(res) == 53
+        res = BinaryOperation(a, '-', b)
+        assert get_value(res) == 33
+        res = BinaryOperation(a, '*', b)
+        assert get_value(res) == 430
+        res = BinaryOperation(a, '/', b)
+        assert get_value(res) == 4
+        res = BinaryOperation(a, '%', b)
+        assert get_value(res) == 3
+        res = BinaryOperation(a, '&&', Number(0))
+        assert get_value(res) == 0
+        res = BinaryOperation(a, '||', Number(0))
+        assert get_value(res) != 0
+        res = BinaryOperation(a, '>', Number(43))
+        assert get_value(res) == 0
+        res = BinaryOperation(a, '<', Number(53))
+        assert get_value(res) != 0
+        res = BinaryOperation(a, '>=', Number(43))
+        assert get_value(res) != 0
+        res = BinaryOperation(a, '<=', Number(42))
+        assert get_value(res) == 0
+        res = BinaryOperation(a, '==', Number(33))
+        assert get_value(res) == 0
+        res = BinaryOperation(a, '!=', Number(33))
+        assert get_value(res) != 0
+        
 
     def test_binary_operation_evaluate(self):
         scope = Scope()
         a = Number(43)
         b = Number(10)
-        summ = BinaryOperation(a, '-', b)
-        eq = BinaryOperation(summ, '==', Number(33))
+        dif = BinaryOperation(a, '-', b)
+        eq = BinaryOperation(dif, '==', Number(33))
         assert get_value(eq) != 0
 
 
