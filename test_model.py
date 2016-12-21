@@ -306,6 +306,7 @@ class TestConditional:
                     [Print(Number(1)), Print(Number(2))],
                     [Print(Number(3)), Print(Number(4))]).evaluate(scope)
         assert sys.stdout.getvalue() == '1\n2\n'
+
     def test_conditional_big_body_if_false(self, monkeypatch):
         monkeypatch.setattr(sys, 'stdout', StringIO())
         scope = Scope()
