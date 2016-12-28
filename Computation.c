@@ -1,5 +1,5 @@
-#include "../include/thread_pool.h"
-#include "../include/Computation.h"
+#include "thread_pool.h"
+#include "Computation.h"
 #include <pthread.h>
 
 void submit(struct ThreadPool *pool, struct Computation *computation, OnComputationComplete on_complete,
