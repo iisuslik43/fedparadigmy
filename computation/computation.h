@@ -1,4 +1,6 @@
-#pragma once
+#ifndef _COMPUTATION_
+#define _COMPUTATION_
+
 #include "../include/thread_pool.h"
 #include <pthread.h>
 
@@ -11,7 +13,6 @@ struct Computation {
     pthread_mutex_t m;
     OnComputationComplete on_complete;
     void* on_complete_arg;
-	
     void (*f)(void*);
     void* arg;
 };
@@ -26,3 +27,5 @@ void thpool_submit_computation(
 void thpool_complete_computation(struct Computation *computation);
 
 void thpool_wait_computation(struct Computation *computation);
+
+#endif
