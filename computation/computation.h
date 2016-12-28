@@ -1,7 +1,7 @@
 #ifndef _COMPUTATION_
 #define _COMPUTATION_
 
-#include "../include/thread_pool.h"
+#include "thread_pool.h"
 #include <pthread.h>
 
 typedef void(*OnComputationComplete)(void*);
