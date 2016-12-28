@@ -1,5 +1,5 @@
 #include "thread_pool.h"
-#include "Computation.h"
+#include "сomputation.h"
 #include <pthread.h>
 
 void thpool_submit_computation(struct ThreadPool *pool, struct Computation *computation,
