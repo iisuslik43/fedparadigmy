@@ -2,7 +2,7 @@
 #include "Computation.h"
 #include <pthread.h>
 
-void submit(struct ThreadPool *pool, struct Computation *computation, OnComputationComplete on_complete,
+void thpool_submit_computation(struct ThreadPool *pool, struct Computation *computation, OnComputationComplete on_complete,
     	    void* on_complete_arg)
 {
 	pthread_mutex_lock(&computation -> m);
@@ -17,7 +17,7 @@ void submit(struct ThreadPool *pool, struct Computation *computation, OnComputat
 	pthread_mutex_unlock(&computation -> m);
 }
 
-void complete(struct Computation *computation)
+void thpool_complete_computation(struct Computation *computation)
 {
 	pthread_mutex_lock(&computation -> m);
 	(computation -> on_complete)(computation -> on_complete_arg);
@@ -26,7 +26,7 @@ void complete(struct Computation *computation)
     pthread_mutex_unlock(&computation -> m);
 }
 
-void wait(struct Computation *computation){
+void thpool_wait_computation(struct Computation *computation){
 	pthread_mutex_lock(&computation -> m);
 	while (!computation -> finished)
 	{
