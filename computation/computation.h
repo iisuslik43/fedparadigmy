@@ -1,3 +1,4 @@
+#pragma once
 #include "../include/thread_pool.h"
 #include <pthread.h>
 
